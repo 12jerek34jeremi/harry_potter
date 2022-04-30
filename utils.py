@@ -127,7 +127,10 @@ def prepare_harry_book(input_directory: str,
                        to_lower=True):
     """
 This function read each file in input_directory, removes from the files things like chapter numbers and page numbers
-using regular expressions' and saves the preprocessed text in new file in output_directory.
+using regular expressions' and saves the preprocessed text in new file in output_directory. It changes ” and “ double
+quotation marks to " quotation mark, ’ ` and ´ single quotation mark to ' quotation mark as well as ¸ to normal coma(,).
+Two or more dots, next to each other or separated only by space, and … at the end of the word are changed to three dots.
+ (maybe.. --> maybe... , maybe… --> maybe, maybe. . .  -->   maybe...)
 
 input_directory:
     The directory of files to be preprocessed. Each file in that directory must have .txt extension. If at least one
@@ -148,7 +151,13 @@ to_lower:
     If true, all Capital letters in file will be change to corresponding lower case letters.
     Default: True
     """
+
     patterns = []
+    patterns.append((re.compile(r'["\”\“]'), '"'))
+    patterns.append((re.compile(r"[\'\’\`\´]"), "'"))
+    patterns.append((re.compile(r"[\,\¸]"), ','))
+    patterns.append((re.compile(r'((\. ?){2,})|…'), '...'))
+
     if format_mode == 1:
         patterns.append((re.compile(
             r'\nPage [0-9]+ of [0-9]+\nGet free e-books and video tutorials at www\.passuneb\.com\n'
@@ -159,13 +168,13 @@ to_lower:
             r'\nC H A P T E R .+\naTHEaPAGEaSIGNa [0-9]+ aTHEaPAGEaSIGNa\n[A-Z ]+\n'
         ), ' '))
         patterns.append((re.compile(
-            r'\n[A-Z -]*\naTHEaPAGEaSIGNa [0-9]+ aTHEaPAGEaSIGNa\n'), ' '))
+            r'\n[A-Z \.\'\"\,\-]*\naTHEaPAGEaSIGNa [0-9]+ aTHEaPAGEaSIGNa\n'), ' '))
     elif format_mode == 3:
         patterns.append((re.compile(
             r"\naNUMBERaSIXaSIGNa [0-9]+ aNUMBERaSIXaSIGNa\nC H A P T E R [A-Z -]+\n[A-Z ,.’'-]+\n"
         ), ' '))
         patterns.append((re.compile(
-            r"\n[A-Z \'\-\n\.’]+\naNUMBERaSIXaSIGNa[\n ][0-9]+ aNUMBERaSIXaSIGNa\n"
+            r"\n[A-Z \'\-\n\.’]+\naNUMBERaSIXaSIGNa[\n ][0-9]+( aNUMBERaSIXaSIGNa)?\n"
         ), ' '))
         patterns.append(
             (re.compile(r"\nCHAPTER [A-Z -]+\naNUMBERaSIXaSIGNa [0-9]+\n"),
@@ -176,6 +185,7 @@ to_lower:
         patterns.append((re.compile(
             r"Get free e-books and video tutorials at www\.passuneb\.com"),
                          ' '))
+    patterns.append((re.compile(r'-\n'), '\n'))
 
     if remove_new_lines:
         patterns.append((re.compile(r'\n'), ' '))
@@ -200,11 +210,11 @@ to_lower:
         if to_lower:
             text = text.lower()
 
-            with open(output_directory + '/' + input_file[:-4] +
-                      '_prepared.txt',
-                      'wt',
-                      encoding='utf-8') as file:
-                file.write(text)
+        with open(output_directory + '/' + input_file[:-4] +
+                  '_prepared.txt',
+                  'wt',
+                  encoding='utf-8') as file:
+            file.write(text)
 
 
 def words_frequencies(input_directory: str):
@@ -263,8 +273,6 @@ return:
     words2 = words1.value_counts(sort=False).sort_index()
     words2.rename('words_count', inplace=True)
     words2.index.rename('frequency', inplace=True)
-
-    words3 = words2.copy()
 
     words3 = pd.DataFrame({
         'words_count': words2,
