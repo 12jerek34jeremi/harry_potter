@@ -52,11 +52,11 @@ return: the created dictionary in case of success, None in case of errors.
     rejected = 0
     dictionary = {}
     rejected_words = []
-    for i in range(1, 7):
+    for i in range(1, 8):
         file_path = directory + '/harry_potter_' + str(i) + '_prepared.txt'
         if not os.path.exists(file_path):
             print("Could not find file ", file_path)
-            return
+            return None
         with open(file_path, 'rt', encoding='utf-8') as file:
             sets.append(set(word_tokenize(file.read())))
 
@@ -124,13 +124,18 @@ def prepare_harry_book(input_directory: str,
                        output_directory: str,
                        format_mode: int,
                        remove_new_lines: bool = True,
-                       to_lower=True):
+                       to_lower=True,
+                       remove_hyphens=True):
     """
 This function read each file in input_directory, removes from the files things like chapter numbers and page numbers
 using regular expressions' and saves the preprocessed text in new file in output_directory. It changes ” and “ double
 quotation marks to " quotation mark, ’ ` and ´ single quotation mark to ' quotation mark as well as ¸ to normal coma(,).
-Two or more dots, next to each other or separated only by space, and … at the end of the word are changed to three dots.
- (maybe.. --> maybe... , maybe… --> maybe, maybe. . .  -->   maybe...)
+Two or more dots, next to each other or separated only by space, and … at the end of the word are changed to three dots
+after a space. (maybe.. --> maybe ... , maybe… --> maybe ..., maybe. . .  -->   maybe ...). Beacuse of the fact that, if
+there is quotation mark after a dot, word_tokenize from nltk sometimes consider dots as part of the word and somtimes
+not this function changes all dots followed by quotation mark (single or double) to spaces and dot.
+So ala." will be change to ala . " and cat. ' will be chage to cat . '
+This function also removes all underscores (_), backslashes (\) and flashes (/) from the text.
 
 input_directory:
     The directory of files to be preprocessed. Each file in that directory must have .txt extension. If at least one
@@ -150,13 +155,15 @@ remove_new_lines:
 to_lower:
     If true, all Capital letters in file will be change to corresponding lower case letters.
     Default: True
+remove_hyphens:
+    If true each the signs: — – - will be removed from the file.
     """
 
     patterns = []
     patterns.append((re.compile(r'["\”\“]'), '"'))
     patterns.append((re.compile(r"[\'\’\`\´]"), "'"))
     patterns.append((re.compile(r"[\,\¸]"), ','))
-    patterns.append((re.compile(r'((\. ?){2,})|…'), '...'))
+    patterns.append((re.compile(r'((\. ?){2,})|…'), ' ... '))
 
     if format_mode == 1:
         patterns.append((re.compile(
@@ -168,7 +175,8 @@ to_lower:
             r'\nC H A P T E R .+\naTHEaPAGEaSIGNa [0-9]+ aTHEaPAGEaSIGNa\n[A-Z ]+\n'
         ), ' '))
         patterns.append((re.compile(
-            r'\n[A-Z \.\'\"\,\-]*\naTHEaPAGEaSIGNa [0-9]+ aTHEaPAGEaSIGNa\n'), ' '))
+            r'\n[A-Z \.\'\"\,\-]*\naTHEaPAGEaSIGNa [0-9]+ aTHEaPAGEaSIGNa\n'),
+                         ' '))
     elif format_mode == 3:
         patterns.append((re.compile(
             r"\naNUMBERaSIXaSIGNa [0-9]+ aNUMBERaSIXaSIGNa\nC H A P T E R [A-Z -]+\n[A-Z ,.’'-]+\n"
@@ -185,11 +193,19 @@ to_lower:
         patterns.append((re.compile(
             r"Get free e-books and video tutorials at www\.passuneb\.com"),
                          ' '))
-    patterns.append((re.compile(r'-\n'), '\n'))
+    patterns.append((re.compile(r'-\n'), ''))
 
     if remove_new_lines:
         patterns.append((re.compile(r'\n'), ' '))
         patterns.append((re.compile(r'  '), ' '))
+
+    patterns.append((re.compile(r'\. ?"'), ' . "'))
+    patterns.append((re.compile(r"\. ?'"), " . '"))
+
+    if remove_hyphens:
+        patterns.append((re.compile(r'[—–\-/\\\_]'), ' '))
+    else:
+        patterns.append((re.compile(r'[/\\\_]'), ' '))
 
     if not os.path.exists(output_directory):
         os.makedirs(output_directory)
@@ -210,8 +226,7 @@ to_lower:
         if to_lower:
             text = text.lower()
 
-        with open(output_directory + '/' + input_file[:-4] +
-                  '_prepared.txt',
+        with open(output_directory + '/' + input_file[:-4] + '_prepared.txt',
                   'wt',
                   encoding='utf-8') as file:
             file.write(text)
@@ -261,7 +276,7 @@ return:
         that each of word 'hollow','narrow','blue','yellow' appears exactly three times in all files.
     """
     words = []
-    for i in range(1, 7):
+    for i in range(1, 8):
         with open(input_directory + '/harry_potter_' + str(i) +
                   '_prepared.txt',
                   'rt',
