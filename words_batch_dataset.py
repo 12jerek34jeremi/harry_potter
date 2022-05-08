@@ -41,9 +41,9 @@ class WordsBatchDataset(Dataset):
                 words = word_tokenize(file.read())
         except Exception as e:
             print("There was an error while trying to read words from file: ",
-                  filename)
+                  book_filapath)
             print(e)
-            return None
+            return
         self.tokens = torch.tensor([dictionary[word] for word in words],
                                    dtype=torch.long)
         self.__length = len(self.tokens) - (2 * sequence_length)
