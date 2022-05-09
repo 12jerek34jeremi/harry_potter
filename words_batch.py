@@ -115,24 +115,28 @@ class WordsBatch(nn.Module):
     Return:
         True in case of success, False in case of failure.
         """
+        parameters_dict = self.info()
+        parameters_dict['words_batch_state_dict'] = self.state_dict()
+        parameters_dict['embedding_state_dict'] = self.embedding.state_dict()
         try:
-            torch.save(
-                {
-                    "sequence_length": self.sequence_length,
-                    "hidden_state_size": self.hidden_state_size,
-                    "words_batch_dropout_factor": self.dropout_factor,
-                    "corpus_size": self.embedding.corpus_size,
-                    "embedding_size": self.embedding.embedding_size,
-                    "embedding_dropout_factor": self.embedding.dropout_factor,
-                    "words_batch_state_dict": self.state_dict(),
-                    "embedding_state_dict": self.embedding.state_dict()
-                }, filepath)
+            torch.save(parameters_dict, filepath)
             return True
         except Exception as e:
             print(
                 f"Sorry, an exception occurred while trying to save model to file {filepath}"
             )
             return False
+
+    def info(self) -> dict[str, int or float]:
+        parameters_dict = {
+            "sequence_length": self.sequence_length,
+            "hidden_state_size": self.hidden_state_size,
+            "words_batch_dropout_factor": self.dropout_factor,
+            "corpus_size": self.embedding.corpus_size,
+            "embedding_size": self.embedding.embedding_size,
+            "embedding_dropout_factor": self.embedding.dropout_factor,
+        }
+        return parameters_dict
 
     @staticmethod
     def load(filepath: str) -> 'WordsBatch':

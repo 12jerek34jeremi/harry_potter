@@ -92,20 +92,24 @@ vector to an item (see get_word_propabilities method).
     Return:
         True in case of success, False in case of failure.
         """
+        parameters_dict = self.info()
+        parameters_dict["state_dict"] = self.state_dict()
         try:
-            torch.save(
-                {
-                    "corpus_size": self.corpus_size,
-                    "embedding_size": self.embedding_size,
-                    "dropout_factor": self.dropout_factor,
-                    "state_dict": self.state_dict()
-                }, filepath)
+            torch.save(parameters_dict, filepath)
             return True
         except Exception as e:
             print(
                 f"Sorry, an exception occurred while trying to save model to file {filepath}"
             )
             return False
+
+    def info(self) -> dict[str, int or float]:
+        parameters_dict = {
+            "corpus_size": self.corpus_size,
+            "embedding_size": self.embedding_size,
+            "dropout_factor": self.dropout_factor,
+        }
+        return parameters_dict
 
     @staticmethod
     def load(filepath: str) -> 'Embedding':
