@@ -2,7 +2,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as f
-
+from typing import Dict
 
 class Embedding(nn.Module):
     """
@@ -11,7 +11,7 @@ vector to an item (see get_word_propabilities method).
     """
 
     def __init__(self, corpus_size: int, embedding_size: int,
-                 dropout_factor: float):
+                 dropout_factor: float, sizes = [512, 1024, 2048]):
         """
     Creates an Embedding class object.
     Parameters:
@@ -22,16 +22,16 @@ vector to an item (see get_word_propabilities method).
 
         super().__init__()
         self.__embedding = nn.Embedding(corpus_size, embedding_size)
-        self.__encoding = nn.Sequential(nn.Linear(embedding_size, 512),
-                                        nn.ReLU(), nn.Dropout(dropout_factor),
-                                        nn.Linear(512, 1024), nn.ReLU(),
-                                        nn.Dropout(dropout_factor),
-                                        nn.Linear(1024, 2048), nn.ReLU(),
-                                        nn.Dropout(dropout_factor),
-                                        nn.Linear(2048, corpus_size))
+
+        self.__encoding = nn.ModuleList()
+        for input_dim, output_dim in zip([embedding_size]+sizes[:-1], sizes):
+            self.__encoding.extend([nn.Linear(input_dim, output_dim), nn.ReLU(), nn.Dropout(dropout_factor)])
+        self.__encoding.append(nn.Linear(sizes[-1], corpus_size))
+
         self.corpus_size = corpus_size
         self.embedding_size = embedding_size
         self.dropout_factor = dropout_factor
+        self.sizes = sizes
 
     def to_dense(self, tokens: torch.Tensor):
         """
@@ -103,11 +103,12 @@ vector to an item (see get_word_propabilities method).
             )
             return False
 
-    def info(self) -> dict[str, int or float]:
+    def info(self) -> Dict[str, int or float]:
         parameters_dict = {
             "corpus_size": self.corpus_size,
             "embedding_size": self.embedding_size,
             "dropout_factor": self.dropout_factor,
+            'sizes': self.sizes
         }
         return parameters_dict
 
@@ -129,9 +130,15 @@ vector to an item (see get_word_propabilities method).
                 f"Sorry, an exception occurred while trying to save model to file {filepath}"
             )
             return None
+
+        if 'sizes' in parameters_dict:
+            sizes = parameters_dict['sizes']
+        else:
+            sizes = [512,1024,2048]
+
         embedding = Embedding(parameters_dict['corpus_size'],
                               parameters_dict['embedding_size'],
-                              parameters_dict['dropout_factor'])
+                              parameters_dict['dropout_factor'], sizes=sizes)
         embedding.load_state_dict(parameters_dict['state_dict'])
         return embedding
 

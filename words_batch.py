@@ -3,19 +3,19 @@
 import torch
 import torch.nn as nn
 from embedding import Embedding
+from typing import Dict
 
-
-class WordsBatch(nn.Module):
+class WordsBatch(nn.Module): #second version
     """A nural netwrok of given archicture:
     Assume embedding_size is 128, corpus_size is 21371, hidden_state_size is 256 and dropout_factor is 0.1 and
     sequence_length is 3.
 
-                    Fully connected layer of size 21371.                           -
+                    Fully connected layer of size 128.                           -
                                     |                                               |
                     Fully concatenation layer of length 1024, ReLU activation       |
                                  and 0.1 dropout.                                   ----- the tail
                                        |                                            |
-                                    tail_input (512,)2                             -
+                                    tail_input (512,)                            -
                                        |
                                        | (concatenation)
                     hidden_state  -----|-----  hidden_state
@@ -38,7 +38,7 @@ class WordsBatch(nn.Module):
     """
 
     def __init__(self, embedding: Embedding, hidden_state_size: int,
-                 dropout_factor: float, sequence_length: int):
+                 dropout_factor: float, sequence_length: int, dense_layer_size: int = 1024):
         """
     Parameters:
         embedding:
@@ -64,12 +64,13 @@ class WordsBatch(nn.Module):
                                   2,
                                   dropout=dropout_factor,
                                   batch_first=True)
-        self.tail = nn.Sequential(nn.Linear(hidden_state_size * 2, 1024),
+        self.tail = nn.Sequential(nn.Linear(hidden_state_size * 2, dense_layer_size),
                                   nn.ReLU(), nn.Dropout(dropout_factor),
-                                  nn.Linear(1024, embedding_size))
+                                  nn.Linear(dense_layer_size, embedding_size))
         self.sequence_length = sequence_length
         self.hidden_state_size = hidden_state_size
         self.dropout_factor = dropout_factor
+        self.dense_layer_size = dense_layer_size
 
     def forward(self, input):
         """
@@ -127,7 +128,7 @@ class WordsBatch(nn.Module):
             )
             return False
 
-    def info(self) -> dict[str, int or float]:
+    def info(self) -> Dict[str, int or float]:
         parameters_dict = {
             "sequence_length": self.sequence_length,
             "hidden_state_size": self.hidden_state_size,
@@ -135,6 +136,8 @@ class WordsBatch(nn.Module):
             "corpus_size": self.embedding.corpus_size,
             "embedding_size": self.embedding.embedding_size,
             "embedding_dropout_factor": self.embedding.dropout_factor,
+            "dense_layer_size": self.dense_layer_size,
+            'embedding_sizes': self.embedding.sizes
         }
         return parameters_dict
 
@@ -156,14 +159,27 @@ class WordsBatch(nn.Module):
                 f"Sorry, an exception occurred while trying to save model to file {filepath}"
             )
             return None
+
+        if 'dense_layer_size' in parameters_dict:
+            dense_layer_size = parameters_dict['dense_layer_size']
+        else:
+            dense_layer_size = 1024
+        if 'embedding_sizes' in parameters_dict:
+            embedding_sizes = parameters_dict['embedding_sizes']
+        else:
+            embedding_sizes = [512,1024,2048]
+
         embedding = Embedding(parameters_dict['corpus_size'],
                               parameters_dict['embedding_size'],
-                              parameters_dict['embedding_dropout_factor'])
+                              parameters_dict['embedding_dropout_factor'],
+                              sizes=embedding_sizes)
         embedding.load_state_dict(parameters_dict['embedding_state_dict'])
+
         words_batch = WordsBatch(embedding,
                                  parameters_dict['hidden_state_size'],
                                  parameters_dict['words_batch_dropout_factor'],
-                                 parameters_dict['sequence_length'])
+                                 parameters_dict['sequence_length'],
+                                 dense_layer_size = dense_layer_size)
         words_batch.load_state_dict(parameters_dict['words_batch_state_dict'])
         return words_batch
 
