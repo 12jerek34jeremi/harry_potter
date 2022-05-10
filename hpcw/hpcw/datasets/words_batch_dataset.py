@@ -1,7 +1,7 @@
 import torch
 from torch.utils.data import Dataset
 from nltk.tokenize import word_tokenize
-
+from typing import Tuple
 
 class WordsBatchDataset(Dataset):
     """DataSet for training word batch. One dataset is one book.
@@ -12,11 +12,11 @@ class WordsBatchDataset(Dataset):
      """
 
     def __init__(self,
-                 book_filapath,
-                 dictionary,
-                 sequence_length,
-                 transform=None,
-                 target_transform=None):
+                 book_filapath : str,
+                 dictionary : dict,
+                 sequence_length: int,
+                 transform: callable =None,
+                 target_transform: callable =None):
         """
         Creates dataset from one file.
     Parameters:
@@ -48,7 +48,7 @@ class WordsBatchDataset(Dataset):
                                    dtype=torch.long)
         self.__length = len(self.tokens) - (2 * sequence_length)
 
-    def __getitem__(self, index):
+    def __getitem__(self, index: int) -> Tuple[torch.Tensor, torch.Tensor]:
         """
     Parameters:
         index:
@@ -80,7 +80,7 @@ class WordsBatchDataset(Dataset):
             y = self.__target_transform(y)
         return X, y
 
-    def __len__(self):
+    def __len__(self) -> int:
         """Returns length of this dataset.The actual length of the dataset is
     nr of words in file (len of list produced by word_tokenize) - 2 * sequence_length.
         """

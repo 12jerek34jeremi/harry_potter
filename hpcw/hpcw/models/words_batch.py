@@ -2,10 +2,11 @@
 
 import torch
 import torch.nn as nn
-from embedding import Embedding
+from hpcw.models.embedding import Embedding
 from typing import Dict
 
-class WordsBatch(nn.Module): #second version
+
+class WordsBatch(nn.Module):  #second version
     """A nural netwrok of given archicture:
     Assume embedding_size is 128, corpus_size is 21371, hidden_state_size is 256 and dropout_factor is 0.1 and
     sequence_length is 3.
@@ -37,8 +38,12 @@ class WordsBatch(nn.Module): #second version
 
     """
 
-    def __init__(self, embedding: Embedding, hidden_state_size: int,
-                 dropout_factor: float, sequence_length: int, dense_layer_size: int = 1024):
+    def __init__(self,
+                 embedding: Embedding,
+                 hidden_state_size: int,
+                 dropout_factor: float,
+                 sequence_length: int,
+                 dense_layer_size: int = 1024):
         """
     Parameters:
         embedding:
@@ -64,9 +69,10 @@ class WordsBatch(nn.Module): #second version
                                   2,
                                   dropout=dropout_factor,
                                   batch_first=True)
-        self.tail = nn.Sequential(nn.Linear(hidden_state_size * 2, dense_layer_size),
-                                  nn.ReLU(), nn.Dropout(dropout_factor),
-                                  nn.Linear(dense_layer_size, embedding_size))
+        self.tail = nn.Sequential(
+            nn.Linear(hidden_state_size * 2, dense_layer_size), nn.ReLU(),
+            nn.Dropout(dropout_factor),
+            nn.Linear(dense_layer_size, embedding_size))
         self.sequence_length = sequence_length
         self.hidden_state_size = hidden_state_size
         self.dropout_factor = dropout_factor
@@ -167,7 +173,7 @@ class WordsBatch(nn.Module): #second version
         if 'embedding_sizes' in parameters_dict:
             embedding_sizes = parameters_dict['embedding_sizes']
         else:
-            embedding_sizes = [512,1024,2048]
+            embedding_sizes = [512, 1024, 2048]
 
         embedding = Embedding(parameters_dict['corpus_size'],
                               parameters_dict['embedding_size'],
@@ -179,7 +185,7 @@ class WordsBatch(nn.Module): #second version
                                  parameters_dict['hidden_state_size'],
                                  parameters_dict['words_batch_dropout_factor'],
                                  parameters_dict['sequence_length'],
-                                 dense_layer_size = dense_layer_size)
+                                 dense_layer_size=dense_layer_size)
         words_batch.load_state_dict(parameters_dict['words_batch_state_dict'])
         return words_batch
 

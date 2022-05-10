@@ -4,14 +4,18 @@ import torch.nn as nn
 import torch.nn.functional as f
 from typing import Dict
 
+
 class Embedding(nn.Module):
     """
 This class can be used to transform a token (like 1513) to a dense vector (see to_dense method) and to transform a dense
 vector to an item (see get_word_propabilities method).
     """
 
-    def __init__(self, corpus_size: int, embedding_size: int,
-                 dropout_factor: float, sizes = [512, 1024, 2048]):
+    def __init__(self,
+                 corpus_size: int,
+                 embedding_size: int,
+                 dropout_factor: float,
+                 sizes=[512, 1024, 2048]):
         """
     Creates an Embedding class object.
     Parameters:
@@ -24,8 +28,12 @@ vector to an item (see get_word_propabilities method).
         self.__embedding = nn.Embedding(corpus_size, embedding_size)
 
         self.__encoding = nn.ModuleList()
-        for input_dim, output_dim in zip([embedding_size]+sizes[:-1], sizes):
-            self.__encoding.extend([nn.Linear(input_dim, output_dim), nn.ReLU(), nn.Dropout(dropout_factor)])
+        for input_dim, output_dim in zip([embedding_size] + sizes[:-1], sizes):
+            self.__encoding.extend([
+                nn.Linear(input_dim, output_dim),
+                nn.ReLU(),
+                nn.Dropout(dropout_factor)
+            ])
         self.__encoding.append(nn.Linear(sizes[-1], corpus_size))
 
         self.corpus_size = corpus_size
@@ -134,11 +142,12 @@ vector to an item (see get_word_propabilities method).
         if 'sizes' in parameters_dict:
             sizes = parameters_dict['sizes']
         else:
-            sizes = [512,1024,2048]
+            sizes = [512, 1024, 2048]
 
         embedding = Embedding(parameters_dict['corpus_size'],
                               parameters_dict['embedding_size'],
-                              parameters_dict['dropout_factor'], sizes=sizes)
+                              parameters_dict['dropout_factor'],
+                              sizes=sizes)
         embedding.load_state_dict(parameters_dict['state_dict'])
         return embedding
 
