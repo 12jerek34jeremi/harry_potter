@@ -62,7 +62,7 @@ This class can be used to change words to tokens and tokens to words. After crea
         if isinstance(index, int):
             return self.__words[index]
         elif isinstance(index, str):
-            return self.__dictionary[index]
+            return self.dictionary[index]
         else:
             raise TypeError(
                 "Unsupported index type: " + str(type(index)) +

@@ -6,6 +6,9 @@ from nltk.tokenize import word_tokenize
 import re
 import pickle
 import pandas as pd
+from hpcw.corpus import Corpus
+from hpcw.models.embedding import Embedding
+import torch
 
 
 def create_dictionary(directory: str,
@@ -298,6 +301,23 @@ return:
     words3 = words3['how_many']
 
     return words1, words2, words3
+
+
+def count_distance(word1: str, word2: str, corpus: Corpus,
+                   embedding: Embedding) -> float or None:
+    if word1 not in corpus:
+        print(f"Sorry, can't find {word1} in corpus.")
+    if word2 not in corpus:
+        print(f"Sorry, can't find {word2} in corpus.")
+
+    device = next(embedding.parameters()).device
+    with torch.no_grad():
+        vectors = embedding.to_dense(
+            torch.tensor([corpus[word1], corpus[word2]],
+                         dtype=torch.long).to(device))
+        vec = vectors[0] - vectors[1]
+        distance = (vec @ vec).item()
+    return distance
 
 
 # Author: Jedrzej Chmiel
