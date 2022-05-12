@@ -9,11 +9,12 @@ import pandas as pd
 from hpcw.corpus import Corpus
 from hpcw.models.embedding import Embedding
 import torch
+from typing import Dict
 
 
 def create_dictionary(directory: str,
                       save_file: str = None,
-                      min_documents: int = 1) -> dict[str, int]:
+                      min_documents: int = 1) -> Dict[str, int]:
     """
 This method creates a dictionary of all words from all files in passed dictionary. (Almost) each word is given an unique
 id (natural number) (see min_documnets argument description find out when some words doesn't get unique id). The lowest
