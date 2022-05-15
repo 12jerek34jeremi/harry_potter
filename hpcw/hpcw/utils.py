@@ -317,7 +317,7 @@ def count_distance(word1: str, word2: str, corpus: Corpus,
             torch.tensor([corpus[word1], corpus[word2]],
                          dtype=torch.long).to(device))
         vec = vectors[0] - vectors[1]
-        distance = (vec @ vec).item()
+        distance = torch.sqrt((vec @ vec)).item()
     return distance
 
 
