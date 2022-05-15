@@ -29,7 +29,7 @@ vector to an item (see get_word_propabilities method).
 
         self.__encoding = nn.ModuleList()
         for input_dim, output_dim in zip([embedding_size] + sizes[:-1], sizes):
-            self.encoding.extend([
+            self.__encoding.extend([
                 nn.Linear(input_dim, output_dim),
                 nn.ReLU(),
                 nn.Dropout(dropout_factor)
@@ -41,9 +41,9 @@ vector to an item (see get_word_propabilities method).
         self.dropout_factor = dropout_factor
         self.sizes = sizes
 
-    def encoding(self):
+    def get_encoding(self):
         return self.__encoding
-    def embedding(self):
+    def get_embedding(self):
         return self.__embedding
 
     def to_dense(self, tokens: torch.Tensor):
