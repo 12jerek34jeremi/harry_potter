@@ -32,7 +32,7 @@ This class can be used to change words to tokens and tokens to words. After crea
                 "There was an error while trying to read dictionary from file: ",
                 dictionary_filepath)
             print(e)
-            return None
+            return
 
         self.__length = len(self.dictionary)
         words = [None for _ in range(self.__length)]
@@ -44,7 +44,7 @@ This class can be used to change words to tokens and tokens to words. After crea
                   " has a id gap.")
             print("There is no word assigned to id: ", words.index(None))
             raise Exception("Id gap in dictionary.")
-            return None
+            return
 
         self.__words = words
 

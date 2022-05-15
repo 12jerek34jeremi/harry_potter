@@ -27,19 +27,24 @@ vector to an item (see get_word_propabilities method).
         super().__init__()
         self.__embedding = nn.Embedding(corpus_size, embedding_size)
 
-        self.encoding = nn.ModuleList()
+        self.__encoding = nn.ModuleList()
         for input_dim, output_dim in zip([embedding_size] + sizes[:-1], sizes):
             self.encoding.extend([
                 nn.Linear(input_dim, output_dim),
                 nn.ReLU(),
                 nn.Dropout(dropout_factor)
             ])
-        self.encoding.append(nn.Linear(sizes[-1], corpus_size))
+        self.__encoding.append(nn.Linear(sizes[-1], corpus_size))
 
         self.corpus_size = corpus_size
         self.embedding_size = embedding_size
         self.dropout_factor = dropout_factor
         self.sizes = sizes
+
+    def encoding(self):
+        return self.__encoding
+    def embedding(self):
+        return self.__embedding
 
     def to_dense(self, tokens: torch.Tensor):
         """
@@ -67,7 +72,7 @@ vector to an item (see get_word_propabilities method).
             [[0.01, 0.02, 0.93, 0.1, 0.003, ..., 0.01]], then it means that for 93% passed dense_vector represent word
             of id 2 (because 0.93 is at position [0,2]).
         """
-        return f.Softmax(self.encoding(dense_embedding), dim=-1)
+        return f.Softmax(self.__encoding(dense_embedding), dim=-1)
 
     def forward(self, dense_embedding: torch.Tensor):
         """
@@ -83,7 +88,7 @@ vector to an item (see get_word_propabilities method).
             [[-2.5, -145.0, -1.0, -2.0, -0.1, -0.2]], then it means that log probability of the fact that passed vector
             represent word of if 1 is -145.0.
         """
-        return f.log_softmax(self.encoding(dense_embedding), dim=-1)
+        return f.log_softmax(self.__encoding(dense_embedding), dim=-1)
 
     def save(
         self,
