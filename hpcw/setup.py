@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='hpcw',
-      version='0.1.6',
+      version='0.1.7',
       author='Jedrzej Chmiel',
       author_email='jedrzej.chmiel.ml@gmail.com',
       install_requires=["torch", "nltk == 3.7"],

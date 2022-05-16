@@ -40,12 +40,9 @@ vector to an item (see get_word_propabilities method).
         self.embedding_size = embedding_size
         self.dropout_factor = dropout_factor
         self.sizes = sizes
-
-    def get_encoding(self):
-        return self.__encoding
-
-    def get_embedding(self):
-        return self.__embedding
+        self.log_softmax = nn.LogSoftmax(dim=-1)
+        self.embedding = self.__embedding
+        self.encoding = self.__encoding
 
     def to_dense(self, tokens: torch.Tensor):
         """
@@ -97,7 +94,7 @@ vector to an item (see get_word_propabilities method).
         for l in self.__encoding:
             result = l(result)
 
-        return f.log_softmax(result, dim=-1)
+        return self.log_softmax(result, dim=-1)
 
     def save(
         self,
