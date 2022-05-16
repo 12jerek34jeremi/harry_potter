@@ -43,6 +43,7 @@ vector to an item (see get_word_propabilities method).
 
     def get_encoding(self):
         return self.__encoding
+
     def get_embedding(self):
         return self.__embedding
 
@@ -77,7 +78,6 @@ vector to an item (see get_word_propabilities method).
             result = l(result)
 
         return f.Softmax(result, dim=-1)
-
 
     def forward(self, dense_embedding: torch.Tensor):
         """
@@ -149,9 +149,9 @@ vector to an item (see get_word_propabilities method).
             parameters_dict = torch.load(filepath)
         except Exception as e:
             print(
-                f"Sorry, an exception occurred while trying to save model to file {filepath}"
+                f"Sorry, an exception occurred while trying to load model from file {filepath}"
             )
-            return None
+            return
 
         if 'sizes' in parameters_dict:
             sizes = parameters_dict['sizes']
@@ -164,6 +164,59 @@ vector to an item (see get_word_propabilities method).
                               sizes=sizes)
         embedding.load_state_dict(parameters_dict['state_dict'])
         return embedding
+
+    def save_embedding(self, filepath: str):
+        torch.save(
+            {
+                "corpus_size": self.corpus_size,
+                "embedding_size": self.embedding_size,
+                "embedding_embedding_state_dict":
+                self.__embedding.state_dict()
+            }, filepath)
+
+    def load_embedding(self, filepath: str) -> bool:
+        parameters_dict = torch.load(filepath)
+
+        if parameters_dict[
+                'corpus_size'] != self.corpus_size or parameters_dict[
+                    'embedding_size'] != self.embedding_size:
+            print(
+                f"Expected corpus_size: {self.corpus_size} and embedding size: {self.embedding_size}. \n"
+                f"Got corpus_size: {parameters_dict['corpus_size']},"
+                f" embedding_size: {parameters_dict['embedding_size']}")
+            return False
+
+        self.__embedding.load_state_dict(
+            parameters_dict['embedding_embedding_state_dict'])
+        return True
+
+    def save_encoding(self, filepath: str):
+        torch.save(
+            {
+                "corpus_size": self.corpus_size,
+                "embedding_size": self.embedding_size,
+                "sizes": self.sizes,
+                "encoding_state_dict": self.__encoding.state_dict()
+            }, filepath)
+
+    def load_encoding(self, filepath: str) -> bool:
+        parameters_dict = torch.load(filepath)
+
+        if parameters_dict[
+                'corpus_size'] != self.corpus_size or parameters_dict[
+                    'embedding_size'] != self.embedding_size or parameters_dict[
+                        'sizes'] != self.sizes:
+
+            print(
+                f"Expected corpus_size: {self.corpus_size}, embedding size: {self.embedding_size}"
+                f" and encoding sizes: {self.sizes}. \n"
+                f"Got corpus_size: {parameters_dict['corpus_size']},"
+                f" embedding_size: {parameters_dict['embedding_size']}, encoding sizes: {parameters_dict['sizes']}"
+            )
+            return False
+
+        self.__encoding.load_state_dict(parameters_dict['encoding_state_dict'])
+        return True
 
 
 #author: Jedrzej Chmiel

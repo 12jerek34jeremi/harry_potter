@@ -3,6 +3,7 @@ from torch.utils.data import Dataset
 from nltk.tokenize import word_tokenize
 from typing import Tuple
 
+
 class WordsBatchDataset(Dataset):
     """DataSet for training word batch. One dataset is one book.
     To train over all 7 books you need to create 7 datasets.  Uses word_tokenize from nltk.tokenize to split file
@@ -12,11 +13,11 @@ class WordsBatchDataset(Dataset):
      """
 
     def __init__(self,
-                 book_filapath : str,
-                 dictionary : dict,
+                 book_filapath: str,
+                 dictionary: dict,
                  sequence_length: int,
-                 transform: callable =None,
-                 target_transform: callable =None):
+                 transform: callable = None,
+                 target_transform: callable = None):
         """
         Creates dataset from one file.
     Parameters:
