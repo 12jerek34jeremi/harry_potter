@@ -72,7 +72,12 @@ vector to an item (see get_word_propabilities method).
             [[0.01, 0.02, 0.93, 0.1, 0.003, ..., 0.01]], then it means that for 93% passed dense_vector represent word
             of id 2 (because 0.93 is at position [0,2]).
         """
-        return f.Softmax(self.__encoding(dense_embedding), dim=-1)
+        result = dense_embedding
+        for l in self.__encoding:
+            result = l(result)
+
+        return f.Softmax(result, dim=-1)
+
 
     def forward(self, dense_embedding: torch.Tensor):
         """
@@ -88,7 +93,11 @@ vector to an item (see get_word_propabilities method).
             [[-2.5, -145.0, -1.0, -2.0, -0.1, -0.2]], then it means that log probability of the fact that passed vector
             represent word of if 1 is -145.0.
         """
-        return f.log_softmax(self.__encoding(dense_embedding), dim=-1)
+        result = dense_embedding
+        for l in self.__encoding:
+            result = l(result)
+
+        return f.log_softmax(result, dim=-1)
 
     def save(
         self,
