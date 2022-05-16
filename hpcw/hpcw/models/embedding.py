@@ -94,7 +94,7 @@ vector to an item (see get_word_propabilities method).
         for l in self.__encoding:
             result = l(result)
 
-        return self.log_softmax(result, dim=-1)
+        return self.log_softmax(result)
 
     def save(
         self,
