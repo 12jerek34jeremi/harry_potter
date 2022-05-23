@@ -1,4 +1,4 @@
-#author: Jedrzej Chmiel
+# author: Jedrzej Chmiel
 import torch
 import torch.nn as nn
 import torch.nn.functional as f
@@ -7,8 +7,10 @@ from typing import Dict
 
 class Embedding(nn.Module):
     """
-This class can be used to transform a token (like 1513) to a dense vector (see to_dense method) and to transform a dense
-vector to an item (see get_word_propabilities method).
+This class can be used to transform a token (token is a real number, like 1513) to a dense vector (see to_dense method)
+and to transform a dense vector back to the token(see get_word_propabilities method). This class uses torch.nn.Embedding
+to transform token to dense vector and fully connected layer to transform a dense vector back to the token. This fully
+connected layer is called underneath the 'encoding'.
     """
 
     def __init__(self,
@@ -17,11 +19,18 @@ vector to an item (see get_word_propabilities method).
                  dropout_factor: float,
                  sizes=[512, 1024, 2048]):
         """
-    Creates an Embedding class object.
-    Parameters:
-        corpus_size: the size of corpus, how many words there are in dictionary
-        embedding_size: the lenght of a dense vector which will represent a word
-        dropout_factor: the dropout factor used in each layer of encoding network.
+Creates an Embedding class object.
+Parameters:
+    corpus_size:
+        The size of corpus, how many words there are in dictionary.
+    embedding_size:
+        The lenght of a dense vector which will represent a word
+        dropout_factor: the dropout factor used in each hidden layer of encoding network.
+    sizes:
+        Sizes is list of lengths of consecutive hidden layers in encoding network. Encoding network is fully connected
+        network used for tansforming a dense vector back to the token.Each hiden layer has a ReLU activation and dropout
+        applied. Dropout factor is specified by 'dropout_factor' argument. Length of first (input) layer of encoding
+        network is embedding_size and length of last (output) encoding layer is corpus_size.
         """
 
         super().__init__()
@@ -41,8 +50,17 @@ vector to an item (see get_word_propabilities method).
         self.dropout_factor = dropout_factor
         self.sizes = sizes
         self.log_softmax = nn.LogSoftmax(dim=-1)
-        self.embedding = self.__embedding
-        self.encoding = self.__encoding
+
+    def get_embedding(self) -> torch.nn.Embedding:
+        """
+    This function just returns a reference to embedding of this object. In first version of Embedding class embedding
+    was a private class member (was named __embedding). That first version was used to train few models. PyTorch is using
+    variables names to create state dictionary. So it wasn't possible to modify change name for '__embedding' to
+    'embedding', it wouldn't be possible to load previous versions of Embedding class. Because of the need to access
+    embedding of this class objects such a method was necessary.
+
+        """
+        return self.__embedding
 
     def to_dense(self, tokens: torch.Tensor):
         """
@@ -74,7 +92,7 @@ vector to an item (see get_word_propabilities method).
         for l in self.__encoding:
             result = l(result)
 
-        return f.Softmax(result, dim=-1)
+        return f.softmax(result, dim=-1)
 
     def forward(self, dense_embedding: torch.Tensor):
         """
@@ -97,8 +115,8 @@ vector to an item (see get_word_propabilities method).
         return self.log_softmax(result)
 
     def save(
-        self,
-        filepath: str,
+            self,
+            filepath: str,
     ) -> bool:
         """
     Saves object in file described by filepath. The directory in which file is gonna to be must exist before calling
@@ -138,7 +156,9 @@ vector to an item (see get_word_propabilities method).
     object from a file, function returns None.
     Parameters:
         filepath:
-            The filepath to object in which file is saved. It should have been created by save method of this class.
+            The path of the file from which this model will be loaded. If file exists, it will be truncated. If file does
+            not exist, it will be created. Directory in which file is must exist. If filepath is /data/dir1/embedding.pth
+            and in 'data' directory there is no 'dir1' directory, then this will lead to an error.
     Return:
         The Embedding class object in case of success. None otherwise.
         """
@@ -163,20 +183,45 @@ vector to an item (see get_word_propabilities method).
         return embedding
 
     def save_embedding(self, filepath: str):
+        """
+    This function saves in file only embedding of this object using torch.save function.
+    Parameters:
+        filepath:
+            The path of the file in which this embedding of this model will be saved. If file exists, it will be
+            truncated. If file does not exist, it will be created. Directory in which file is must exist. If filepath is
+            /data/dir1/embedding.pth and in 'data' directory there is no 'dir1' directory, then this will lead to an
+            error.
+    Return:
+        This function does not return anything. (It always returns None)
+        """
         torch.save(
             {
                 "corpus_size": self.corpus_size,
                 "embedding_size": self.embedding_size,
                 "embedding_embedding_state_dict":
-                self.__embedding.state_dict()
+                    self.__embedding.state_dict()
             }, filepath)
 
     def load_embedding(self, filepath: str) -> bool:
+        """
+    This function loads an embedding from file. Current embedding of this object is discarded and replaced with the one
+    loaded from the file. File from which embedding is loaded should be created by save_embedding method of this class.
+    If any problems occur while trying to read object from a file function prints this information on screen and
+    returns False.
+    Parameters:
+        filepath:
+            The path of the file from which this model will be loaded. If file exists, it will be truncated. If file does
+            not exist, it will be created. Directory in which file is must exist. If filepath is /data/dir1/embedding.pth
+            and in 'data' directory there is no 'dir1' directory, then this will lead to an error. Passed file should be
+            created using save_embedding method of this class.
+    Return:
+        True class object in case of success. False otherwise.
+        """
         parameters_dict = torch.load(filepath)
 
         if parameters_dict[
-                'corpus_size'] != self.corpus_size or parameters_dict[
-                    'embedding_size'] != self.embedding_size:
+            'corpus_size'] != self.corpus_size or parameters_dict[
+            'embedding_size'] != self.embedding_size:
             print(
                 f"Expected corpus_size: {self.corpus_size} and embedding size: {self.embedding_size}. \n"
                 f"Got corpus_size: {parameters_dict['corpus_size']},"
@@ -188,6 +233,17 @@ vector to an item (see get_word_propabilities method).
         return True
 
     def save_encoding(self, filepath: str):
+        """
+    This function saves in file only encoding of this object using torch.save function.
+    Parameters:
+        filepath:
+            The path of the file in which this embedding of this model will be saved. If file exists, it will be
+            truncated. If file does not exist, it will be created. Directory in which file is must exist. If filepath is
+            /data/dir1/embedding.pth and in 'data' directory there is no 'dir1' directory, then this will lead to an
+            error.
+    Return:
+        This function does not return anything. (It always returns None)
+     """
         torch.save(
             {
                 "corpus_size": self.corpus_size,
@@ -197,13 +253,26 @@ vector to an item (see get_word_propabilities method).
             }, filepath)
 
     def load_encoding(self, filepath: str) -> bool:
+        """
+    This function loads an embedding from file. Current embedding of this object is discarded and replaced with the one
+    loaded from the file. File from which embedding is loaded should be created by save_embedding method of this class.
+    If any problems occur while trying to read object from a file function prints this information on screen and
+    returns False.
+    Parameters:
+        filepath:
+            The path of the file from which this model will be loaded. If file exists, it will be truncated. If file does
+            not exist, it will be created. Directory in which file is must exist. If filepath is /data/dir1/embedding.pth
+            and in 'data' directory there is no 'dir1' directory, then this will lead to an error. Passed file should be
+            created using save_embedding method of this class.
+    Return:
+        True class object in case of success. False otherwise.
+        """
         parameters_dict = torch.load(filepath)
 
         if parameters_dict[
-                'corpus_size'] != self.corpus_size or parameters_dict[
-                    'embedding_size'] != self.embedding_size or parameters_dict[
-                        'sizes'] != self.sizes:
-
+            'corpus_size'] != self.corpus_size or parameters_dict[
+            'embedding_size'] != self.embedding_size or parameters_dict[
+            'sizes'] != self.sizes:
             print(
                 f"Expected corpus_size: {self.corpus_size}, embedding size: {self.embedding_size}"
                 f" and encoding sizes: {self.sizes}. \n"
@@ -215,5 +284,4 @@ vector to an item (see get_word_propabilities method).
         self.__encoding.load_state_dict(parameters_dict['encoding_state_dict'])
         return True
 
-
-#author: Jedrzej Chmiel
+# author: Jedrzej Chmiel

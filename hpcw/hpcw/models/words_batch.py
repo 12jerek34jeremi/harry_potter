@@ -7,7 +7,7 @@ from typing import Dict
 
 
 class WordsBatch(nn.Module):  #second version
-    """A nural netwrok of given archicture:
+    """A nural network of given architecture:
     Assume embedding_size is 128, corpus_size is 21371, hidden_state_size is 256 and dropout_factor is 0.1 and
     sequence_length is 3.
 
@@ -19,22 +19,24 @@ class WordsBatch(nn.Module):  #second version
                                     tail_input (512,)                            -
                                        |
                                        | (concatenation)
-                    hidden_state  -----|-----  hidden_state
-                        (256,)                 (256,)
-                          |                     |
-    LSTM------LSTM------LSTM                   LSTM------LSTM------LSTM
-      |         |         |                     |         |         |
-    LSTM------LSTM------LSTM                   LSTM------LSTM------LSTM
-      |         |         |                     |         |         |
-    dense     dense     dense                  dense     dense     dense
-    vector    vector    vector                 vector    vector    vector
-    (128,)    (128,)    (128,)                 (128,)    (128,)    (128,)         <----shape of tensor
-      |         |         |                       |         |         |
-    token      token      token                token      token      token        <--- each token is one-item tensor
+                    hidden_state  -----|----------------  hidden_state
+                        (256,)                             (256,)
+                          |                                  |
+    LSTM---------LSTM---------LSTM                   LSTM---------LSTM---------LSTM
+      |           |            |                     |             |            |
+    LSTM---------LSTM---------LSTM                   LSTM---------LSTM---------LSTM
+      |          |             |                     |             |            |
+ embedding   embedding embedding                embedding     embedding  embedding
+    vector    vector    vector                  vector        vector      vector
+    (128,)    (128,)    (128,)                  (128,)        (128,)      (128,)         <----shape of tensor
+      |         |         |                       |            |           |
+    token      token      token                token        token        token        <--- each token is one-item tensor
       |         |          |                      |         |          |
-    Hogward     is         the                 school      for       wizzards
+    word     word         word                 word       word        word
+      |         |          |                      |         |          |
+    Hogward     is         the                 school      for       wizards
 
-    (We want to predict the word 'best' in sentance: Hogward is the best school for wizzards)
+    (We want to predict the word 'best' in sentence: Hogward is the best school for wizards)
 
     """
 

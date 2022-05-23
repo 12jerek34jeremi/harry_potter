@@ -1,5 +1,7 @@
 #   Author: Jedrzej Chmiel
 
+import matplotlib.pyplot as plt
+import matplotlib
 import os
 from os import listdir
 from nltk.tokenize import word_tokenize
@@ -304,12 +306,32 @@ return:
     return words1, words2, words3
 
 
-def count_distance(word1: str, word2: str, corpus: Corpus,
+def count_distance(word1: str, word2: str, corpus: Corpus or dict,
                    embedding: Embedding) -> float or None:
+    """
+This function counts distance between two words in particular embedding. If any of two words is not in corpus, then this
+information is printed and function returns None. Distance between two words is squere of difference of two dense vectors
+which represents those words.s
+Parameters:
+    word1:
+        First word. Example: 'cat'.
+    word2:
+        Second word. Example: 'wizzard'.
+    corpus:
+        Any object that supports converting word (str) to token (int) using __getitem__ method. (It should be possible
+        to transform word 'cat' to a token using corpus['cat'].) Function uses this object to transform word to token.
+    embedding:
+        Embedding object that will be used to transform token into a dense vector.
+Return:
+     Squere of difference of two dense vectors representing given words.
+
+    """
     if word1 not in corpus:
         print(f"Sorry, can't find {word1} in corpus.")
+        return None
     if word2 not in corpus:
         print(f"Sorry, can't find {word2} in corpus.")
+        return None
 
     device = next(embedding.parameters()).device
     with torch.no_grad():
@@ -320,5 +342,16 @@ def count_distance(word1: str, word2: str, corpus: Corpus,
         distance = (vec @ vec).item()
     return distance
 
-
+def plot_mse(results: Dict[str, int or float]):
+    values = [results['mse_initial']]
+    i = 0
+    while 'mse_after_epoch_'+ str(i) in results:
+        values.append(results['mse_after_epoch_'+str(i)])
+        i += 1
+    x = list(range(-1, i, 1))
+    plt.figure(figsize=(30, 30))
+    matplotlib.rcParams.update({'font.size': 35})
+    plt.grid(visible=True, which='both')
+    plt.plot(x, values)
+    plt.show()
 # Author: Jedrzej Chmiel
