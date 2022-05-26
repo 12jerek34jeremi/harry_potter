@@ -20,9 +20,9 @@ def create_dictionary(directory: str,
     """
 This method creates a dictionary of all words from all files in passed dictionary. (Almost) each word is given an unique
 id (natural number) (see min_documnets argument description find out when some words doesn't get unique id). The lowest
-given id is 0 and the highest given id is number of unique words in all files - 1. Each id from interval <0, number of
-unique words - 1> is assigned to some word. (There are no gpas in id's). To divide text to words (tokens) this function
-uses word_tokenize() function form nltk package.
+given id is 0 and the highest given id is number of unique words in all files - 1. Each id from interval
+<0; number of unique words - 1> is assigned to some word. (There are no gpas in id's).
+To divide text to words this function uses word_tokenize() function form nltk package.
 
 Parameters:
     directory (str) :
@@ -43,7 +43,7 @@ Parameters:
         in file "harry_potter_1_prepared" and min_documents is set to 3, then word 'fence' must appear in at least two
         other files to get unique id. If that's not the case (like word "fence" is only in one file) the word is given
         id which is one of the numbers: 0,1,2:
-            0 if it is proper word (like Dumbledore or Howard);
+            0 if it is proper word (like Dumbledore or hogwart);
             1 if it is a number (integer or floating-point)
             2 in every other case.
         If min_documents is greater than 1, then unique ids starts from 3.
@@ -51,6 +51,7 @@ Parameters:
         Default value is 1.
 
 return: the created dictionary in case of success, None in case of errors.
+        Examplatory return:{'cat': 0, 'wizard': 1, 'magic': 2, ..., 'orange': 21370}
     """
 
     pattern = re.compile(r'^-?[0-9]*[,.]?[0-9]*$')
@@ -137,7 +138,7 @@ This function read each file in input_directory, removes from the files things l
 using regular expressions' and saves the preprocessed text in new file in output_directory. It changes ” and “ double
 quotation marks to " quotation mark, ’ ` and ´ single quotation mark to ' quotation mark as well as ¸ to normal coma(,).
 Two or more dots, next to each other or separated only by space, and … at the end of the word are changed to three dots
-after a space. (maybe.. --> maybe ... , maybe… --> maybe ..., maybe. . .  -->   maybe ...). Beacuse of the fact that, if
+after a space. (maybe.. --> maybe ... , maybe… --> maybe ..., maybe. . .  -->   maybe ...). Because of the fact that, if
 there is quotation mark after a dot, word_tokenize from nltk sometimes consider dots as part of the word and somtimes
 not this function changes all dots followed by quotation mark (single or double) to spaces and dot.
 So ala." will be change to ala . " and cat. ' will be chage to cat . '
@@ -162,7 +163,7 @@ to_lower:
     If true, all Capital letters in file will be change to corresponding lower case letters.
     Default: True
 remove_hyphens:
-    If true each the signs: — – - will be removed from the file.
+    If true each of the signs: "—", "–", and "-" will be removed from the file.
     """
 
     patterns = []
@@ -240,12 +241,13 @@ remove_hyphens:
 
 def words_frequencies(input_directory: str):
     """
-Read all properly named files in given directory, count words and returns pandas Series representing frequenciec of words.
+Read all properly named files in given directory, count words and returns pandas Series representing frequencies of
+words.
 
 Parameters:
 input_directory:
     Path to the directory with files to read and count words. In the passed directory there must be 7 files named
-    'harry_potter_n_prepared.txt', where n belongs to {1,2,3,4,5,6,7}. If at least one file is missing function print
+    'harry_potter_n_prepared.txt', where n belongs to {1,2,3,4,5,6,7}. If at least one file is missing function prints
     information on the screen and returns None. Function ignores all other files in directory.
     Note: This function assumes that files are prepared.
     (Things like page signs, chapters names and some strange characters were removed from the text.)
@@ -257,7 +259,7 @@ return:
         fence      2
         cat        6
         wizard     25
-        It means that in word 'fence' appears twice in whole all files. (In union of files, not in each file
+        It means that in word 'fence' appears twice in all files. (In union of files, not in each file
         separately.)
     Second series:
         Count of unique words witch appears given number of times. Exemplary output:
@@ -267,8 +269,8 @@ return:
         2                 16
         3                 4
         4                 15
-        It means that there are 7 unique words, witch appears only once in all files (In union of files, not in each
-        file separately.), there are 16 unique words in all files and so on...
+        It means that there are 8 unique words, witch appears only once in all files (In union of files, not in each
+        file separately.), there are 16 unique words, witch appears exactly two times in all files, and so on...
         Sum of words_count column is number of unique words in all files.
     Third series:
         How many words (not unique) appears given number of times in all files. Exemplary output:
@@ -278,8 +280,9 @@ return:
         2                 32
         3                 12
         4                 60
-        It means that in union of all files there are 32 words (not unique) which appers twice in all files. For example
-        that each of word 'hollow','narrow','blue','yellow' appears exactly three times in all files.
+        It means that in union of all files there are 12 words (not unique), such that each of them appears three times
+        in all files. (In union of files, not in each file separately.) For example each of words 'hollow','narrow',
+        blue' and 'yellow' appears exactly three times in all files.
     """
     words = []
     for i in range(1, 8):
@@ -310,20 +313,20 @@ def count_distance(word1: str, word2: str, corpus: Corpus or dict,
                    embedding: Embedding) -> float or None:
     """
 This function counts distance between two words in particular embedding. If any of two words is not in corpus, then this
-information is printed and function returns None. Distance between two words is squere of difference of two dense vectors
-which represents those words.s
+information is printed and function returns None. Distance between two words is square of difference of two dense
+vectors which represents those words.
 Parameters:
     word1:
         First word. Example: 'cat'.
     word2:
-        Second word. Example: 'wizzard'.
+        Second word. Example: 'wizard'.
     corpus:
         Any object that supports converting word (str) to token (int) using __getitem__ method. (It should be possible
-        to transform word 'cat' to a token using corpus['cat'].) Function uses this object to transform word to token.
+        to transform word 'cat' to a token using corpus['cat'].) Function uses this object to transform word to a token.
     embedding:
         Embedding object that will be used to transform token into a dense vector.
 Return:
-     Squere of difference of two dense vectors representing given words.
+     Square of difference of two dense vectors representing given words.
 
     """
     if word1 not in corpus:
@@ -342,11 +345,23 @@ Return:
         distance = (vec @ vec).item()
     return distance
 
+
 def plot_mse(results: Dict[str, int or float]):
+    """
+This function read consecutive mses from passed dictionary, plots it using matplotlib.pyplot and then show graph on the
+screen.
+
+Arguments:
+        results: dictionary with consecutive mses. Consecutive mses should be named mse_initial, mse_after_epoch_1,
+        mse_after_epoch_2, mse_after_epoch_3, and so on... All other items from dictionary are ignored. Exemplary
+        dictionary: {'dense_layer_size': 256,  'embedding_sizes': [128, 512],  'mse_initial': 64.29942370265994,
+         'mse_after_epoch_0': 52.60520227320573,  'mse_after_epoch_1: 52.30913876929527',
+          'mse_after_epoch_2': 52.20851488967295,  'mse_after_epoch_3': 52.14135190074598}
+        """
     values = [results['mse_initial']]
     i = 0
-    while 'mse_after_epoch_'+ str(i) in results:
-        values.append(results['mse_after_epoch_'+str(i)])
+    while 'mse_after_epoch_' + str(i) in results:
+        values.append(results['mse_after_epoch_' + str(i)])
         i += 1
     x = list(range(-1, i, 1))
     plt.figure(figsize=(30, 30))
@@ -354,4 +369,6 @@ def plot_mse(results: Dict[str, int or float]):
     plt.grid(visible=True, which='both')
     plt.plot(x, values)
     plt.show()
+
+
 # Author: Jedrzej Chmiel

@@ -9,6 +9,13 @@ class OneItemDataset(Dataset):
     item tensor (shape (,) ). This item is an token representing a word."""
 
     def __init__(self, dictionary_length, transform=None):
+        """
+    Parameters:
+        dictionary_length:
+            Number of words in the corpus.
+        transform:
+            function to be applied on each input in __getitem__ method.
+        """
         super().__init__()
         self.__transform = transform
         self.__length = dictionary_length
@@ -20,7 +27,6 @@ class OneItemDataset(Dataset):
             An token of w word.
     Return:
         A one item tensor with this token :).
-        :return:
         """
         x = torch.tensor(index, dtype=torch.long)
         if self.__transform is not None:

@@ -115,8 +115,8 @@ Parameters:
         return self.log_softmax(result)
 
     def save(
-            self,
-            filepath: str,
+        self,
+        filepath: str,
     ) -> bool:
         """
     Saves object in file described by filepath. The directory in which file is gonna to be must exist before calling
@@ -199,7 +199,7 @@ Parameters:
                 "corpus_size": self.corpus_size,
                 "embedding_size": self.embedding_size,
                 "embedding_embedding_state_dict":
-                    self.__embedding.state_dict()
+                self.__embedding.state_dict()
             }, filepath)
 
     def load_embedding(self, filepath: str) -> bool:
@@ -220,8 +220,8 @@ Parameters:
         parameters_dict = torch.load(filepath)
 
         if parameters_dict[
-            'corpus_size'] != self.corpus_size or parameters_dict[
-            'embedding_size'] != self.embedding_size:
+                'corpus_size'] != self.corpus_size or parameters_dict[
+                    'embedding_size'] != self.embedding_size:
             print(
                 f"Expected corpus_size: {self.corpus_size} and embedding size: {self.embedding_size}. \n"
                 f"Got corpus_size: {parameters_dict['corpus_size']},"
@@ -270,9 +270,9 @@ Parameters:
         parameters_dict = torch.load(filepath)
 
         if parameters_dict[
-            'corpus_size'] != self.corpus_size or parameters_dict[
-            'embedding_size'] != self.embedding_size or parameters_dict[
-            'sizes'] != self.sizes:
+                'corpus_size'] != self.corpus_size or parameters_dict[
+                    'embedding_size'] != self.embedding_size or parameters_dict[
+                        'sizes'] != self.sizes:
             print(
                 f"Expected corpus_size: {self.corpus_size}, embedding size: {self.embedding_size}"
                 f" and encoding sizes: {self.sizes}. \n"
@@ -283,5 +283,6 @@ Parameters:
 
         self.__encoding.load_state_dict(parameters_dict['encoding_state_dict'])
         return True
+
 
 # author: Jedrzej Chmiel

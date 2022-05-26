@@ -5,32 +5,33 @@ from typing import Tuple
 
 
 class WordsBatchDataset(Dataset):
-    """DataSet for training word batch. One dataset is one book.
-    To train over all 7 books you need to create 7 datasets.  Uses word_tokenize from nltk.tokenize to split file
-    into words. This function creates tensor of sequential tokens at sequential index. So if the file starts with "you are
-     the wizzard, harry.", and following words have following ids: {'you':124, 'are':412, 'the':26, 'wizzard':25,
-      ',':432, 'harry':622, '.':11324}, then this tensor will be like [124, 412, 26, 25, 432, 622, 11324, ...]
+    """
+DataSet for training Words of Batch model. One dataset is one book.
+To train over all 7 books you need to create 7 datasets.  This class uses word_tokenize from nltk.tokenize to split file
+into words. This function creates tensor of sequential tokens at sequential index. So if the file starts with "you are
+ the wizzard, harry.", and following words have following ids: {'you':124, 'are':412, 'the':26, 'wizzard':25,
+  ',':432, 'harry':622, '.':11324}, then this tensor will be like [124, 412, 26, 25, 432, 622, 11324, ...]
      """
 
     def __init__(self,
-                 book_filapath: str,
+                 book_filepath: str,
                  dictionary: dict,
                  sequence_length: int,
                  transform: callable = None,
                  target_transform: callable = None):
         """
         Creates dataset from one file.
-    Parameters:
-        book_filapath:
-            file path to file from which to read, should be .txt file with UTF-8 encoding.
-        dictionary:
-            dictionary of id's of each word. Like {'cat':0, 'wizzard':1, ''hermione': 2, ...}
-        sequence_length:
-            how many words before and after are used to predict middle word.
-        transform:
-            function to be applied on each input in __getitem__ method.
-        target_transform:
-            function to be applied on each target in __getitem__ method.
+        Parameters:
+            book_filepath:
+                File path to file from which to read a book, should be .txt file with UTF-8 encoding.
+            dictionary:
+                Dictionary of id's of each word. Like {'cat':0, 'wizzard':1, ''hermione': 2, ...}
+            sequence_length:
+                How many words before and after are used to predict middle word.
+            transform:
+                Function to be applied on each input in __getitem__ method.
+            target_transform:
+                Function to be applied on each target in __getitem__ method.
         """
         super().__init__()
         self.__transform = transform
@@ -38,11 +39,11 @@ class WordsBatchDataset(Dataset):
         self.__sequence_length = sequence_length
 
         try:
-            with open(book_filapath, 'rt', encoding='UTF-8') as file:
+            with open(book_filepath, 'rt', encoding='UTF-8') as file:
                 words = word_tokenize(file.read())
         except Exception as e:
             print("There was an error while trying to read words from file: ",
-                  book_filapath)
+                  book_filepath)
             print(e)
             return
         self.tokens = torch.tensor([dictionary[word] for word in words],
@@ -55,7 +56,7 @@ class WordsBatchDataset(Dataset):
         index:
             The index of a word. Which is gonna to be predicted.
         Return:
-            A tupple. First element of a tuple is tensor of shape (2*s_l,), where s_l is sequence_length. First part of
+            A tuple. First element of a tuple is tensor of shape (2*s_l,), where s_l is sequence_length. First part of
             tensor are words before word which is to be predicted and second part of tensor are words after word which is
             to be predicted. The second element of tuple is token of predicted word.
 

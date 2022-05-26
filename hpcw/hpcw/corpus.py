@@ -5,7 +5,7 @@ import pickle
 class Corpus:
     """
 This class can be used to change words to tokens and tokens to words. After creating an object of this class named
-'the_corpus' you can check what word has id 15432 using the_corpus[15432]. You can also check what is the id of word
+'the_corpus', you can check what word has id 15432 using the_corpus[15432]. You can also check what is the id of word
 'cat' using the_corpus['cat'].
     """
 
@@ -16,7 +16,7 @@ This class can be used to change words to tokens and tokens to words. After crea
         dictionary_filepath:
             The file path to the dictionary[str, int] saved using pickle module. The dictionary should contain id's of
             all necessary words. Exemplatory dictionary:
-            {"cat": 0, "wizzard": 1, "grass": 2}
+            {"cat": 0, "wizard": 1, "grass": 2}
             Dictionary should not contain any id gaps! (If max id is 5 and min id is 0 one, then one word should be
             assigned to each integer number belonging to <0, 5>). The lowest id should be 0. This function checks if
             dictionary saved in passed file is correct. If there is an id gap in dictionary, function prints this
